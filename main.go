@@ -1,11 +1,17 @@
 package main
 
 import (
-	"fmt"
-
-	"rsc.io/quote"
+	"github.com/Ilya52Commits/course-platform/database"
+	"github.com/Ilya52Commits/course-platform/routers"
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
-    fmt.Println(quote.Go())
+	database.Connect()
+
+	var app = fiber.New()
+
+	routers.SetUp(app)
+
+	app.Listen(":8000")
 }
