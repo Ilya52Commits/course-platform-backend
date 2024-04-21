@@ -1,79 +1,48 @@
 package main
 
 import (
-	"encoding/base64"
+	"fmt"
 	"github.com/Ilya52Commits/course-platform/database"
 	"github.com/Ilya52Commits/course-platform/routers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"log"
 	"net/smtp"
-	"strings"
 )
 
-// Реализация функции подтверждения почты
-//func checkMail() error {
-//	auth := smtp.PlainAuth("", "krasnenkov.ilia@gmail.com", "s5067a301", "smtp.gmail.com")
-//
-//	to := []string{"krasnenkov.ilya@inbox.ru"}
-//	msg := []byte("To: " + "krasnenkov.ilya@inbox.ru" + "\r\n" +
-//		"Subject: discount Gophers!\r\n" +
-//		"\r\n" +
-//		"This is the email body.\r\n")
-//	err := smtp.SendMail("smtp.gmail.com:465", auth, "krasnenkov.ilia@gmail.com", to, msg)
-//	if err != nil {
-//		log.Fatal(err)
-//		return err
-//	}
-//	return nil
-//}
+// Реализация функции подтверждения почты ************************
+func SendMail() {
+	// Информация об отправителе
+	from := "krasnenkov.ilia@gmail.com"
+	password := "s5067a301"
 
-func SendMail(addr, from, subject, body string, to []string) error {
-	r := strings.NewReplacer("\r\n", "", "\r", "", "\n", "", "%0a", "", "%0d", "")
+	// Информация о получателе
+	to := []string{
+		"krasnenkov.ilya@inbox.ru",
+	}
 
-	c, err := smtp.Dial(addr)
+	// smtp сервер конфигурация
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	// Сообщение.
+	message := []byte("Тестовой сообщение через golang.")
+
+	// Авторизация.
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	// Отправка почты.
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		return
 	}
-	defer c.Close()
-	if err = c.Mail(r.Replace(from)); err != nil {
-		return err
-	}
-	for i := range to {
-		to[i] = r.Replace(to[i])
-		if err = c.Rcpt(to[i]); err != nil {
-			return err
-		}
-	}
-
-	w, err := c.Data()
-	if err != nil {
-		return err
-	}
-
-	msg := "To: " + strings.Join(to, ",") + "\r\n" +
-		"From: " + from + "\r\n" +
-		"Subject: " + subject + "\r\n" +
-		"Content-Type: text/html; charset=\"UTF-8\"\r\n" +
-		"Content-Transfer-Encoding: base64\r\n" +
-		"\r\n" + base64.StdEncoding.EncodeToString([]byte(body))
-
-	_, err = w.Write([]byte(msg))
-	if err != nil {
-		return err
-	}
-	err = w.Close()
-	if err != nil {
-		return err
-	}
-	return c.Quit()
+	fmt.Println("Почта отправлена!")
 }
 
 func main() {
-	//err := checkMail()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	// Проверка отправки сообщения **********************
+	SendMail() // Гугл запрашивает дополнительное подтверждение
+
 	// Вызов функции Connect в паете database
 	database.Connect()
 
@@ -92,10 +61,4 @@ func main() {
 
 	// Начтраивается порт 8000
 	app.Listen(":8000")
-
-	err := SendMail("localhost:8000", "krasnenkov.ilia@gmail.com",
-		"Subject text", "Body text", []string{"krasnenkov.ilya@inbox.ru"})
-	if err != nil {
-		log.Fatal(err)
-	}
 }
