@@ -6,11 +6,30 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
+	"log"
+	"net/smtp"
 	"strconv"
 	"time"
 )
 
 const SecretKey = "secret" // Секретный ключ для токена пользователя
+
+// Реализация функции подтверждения почты
+func checkMail() error {
+	auth := smtp.PlainAuth("", "krasnenkov.ilia@gmail.com", "s5067a301", "smtp.gmail.com")
+
+	to := []string{"krasnenkov.ilya@inbox.ru"}
+	msg := []byte("To: " + "krasnenkov.ilya@inbox.ru" + "\r\n" +
+		"Subject: discount Gophers!\r\n" +
+		"\r\n" +
+		"This is the email body.\r\n")
+	err := smtp.SendMail("smtp.gmail.com:465", auth, "krasnenkov.ilia@gmail.com", to, msg)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	return nil
+}
 
 // Реализация функции регистрации
 func Register(c *fiber.Ctx) error {
@@ -49,6 +68,12 @@ func Login(c *fiber.Ctx) error {
 		return err
 	}
 
+	/* **********************************
+	err := checkMail()
+	if err != nil {
+		log.Fatal(err)
+	}
+	*/
 	var user models.User // Возврать модели User
 
 	// Поиск первый результат почты в базе данных
