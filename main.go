@@ -1,48 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"github.com/Ilya52Commits/course-platform/database"
 	"github.com/Ilya52Commits/course-platform/routers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"net/smtp"
 )
 
-// Реализация функции подтверждения почты ************************
-func SendMail() {
-	// Информация об отправителе
-	from := "krasnenkov.ilia@gmail.com"
-	password := "s5067a301"
-
-	// Информация о получателе
-	to := []string{
-		"krasnenkov.ilya@inbox.ru",
-	}
-
-	// smtp сервер конфигурация
-	smtpHost := "smtp.gmail.com"
-	smtpPort := "587"
-
-	// Сообщение.
-	message := []byte("Тестовой сообщение через golang.")
-
-	// Авторизация.
-	auth := smtp.PlainAuth("", from, password, smtpHost)
-
-	// Отправка почты.
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("Почта отправлена!")
-}
-
 func main() {
-	// Проверка отправки сообщения **********************
-	SendMail() // Гугл запрашивает дополнительное подтверждение
-
 	// Вызов функции Connect в паете database
 	database.Connect()
 
