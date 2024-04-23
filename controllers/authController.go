@@ -7,14 +7,16 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
+	"math/rand"
 	"strconv"
 	"time"
 )
 
 const SecretKey = "secret" // Секретный ключ для токена пользователя
 
-// Реализация функции регистрации
-func Register(c *fiber.Ctx) error {
+var globalMap map[string]string
+
+func MailConfirm(c *fiber.Ctx) error {
 	var data map[string]string // Создание хэш-таблицы для данных
 
 	// Проверка тела запроса на ошибку
@@ -23,7 +25,44 @@ func Register(c *fiber.Ctx) error {
 		return err
 	}
 
-	scripts.SendMail(data["email"])
+	globalMap = make(map[string]string)
+	globalMap["code"] = data
+
+	return nil
+}
+
+// Реализация функции регистрации
+func Register(c *fiber.Ctx) error {
+	var data map[string]string // Создание хэш-таблицы для данных
+
+	// Проверка тела запроса на ошибку
+	if err := c.BodyParser(&data); err != nil {
+		// Если ошибка не пуста, то происходит выход из функции
+		return err
+	}
+
+	validationCode := rand.Intn(900000) + 100000 // Генерация случайного числа от 100000 до 999999
+
+	// Вызов метода для отправки письма на почту пользователя
+	if err := scripts.SendMail(data["email"], validationCode); err != nil {
+		// Если почта некоректная, то происходит выход из функции
+		return err
+	}
+
+	//if err := &codeJson; err != nil {
+	//	fmt.Printf("Ошибка")
+	//	return nil
+	//}
+
+	// Сохранение сгенерированного кода в переменной codeJson
+	//codeJson := strconv.Itoa(validationCode)
+	//
+	//// Проверка вводимого пользователем кода
+	//userCode := data["code"]
+	//if userCode != codeJson {
+	//	// Коды не совпадают, выполняйте соответствующие действия
+	//	return fmt.Errorf("Неверный код")
+	//}
 
 	// Хэширование пароля
 	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
