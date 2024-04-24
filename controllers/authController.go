@@ -14,8 +14,6 @@ import (
 
 const SecretKey = "secret" // Секретный ключ для токена пользователя
 
-var globalMap map[string]string
-
 func MailConfirm(c *fiber.Ctx) error {
 	var data map[string]string // Создание хэш-таблицы для данных
 
@@ -25,10 +23,36 @@ func MailConfirm(c *fiber.Ctx) error {
 		return err
 	}
 
-	globalMap = make(map[string]string)
-	globalMap["code"] = data
+	var user models.User // Возврать модели User
 
-	return nil
+	database.DB.Where("varified_code = ?", data["code"]).First(&user)
+
+	// Если пользователь не был найден
+	if user.Id == 0 {
+		// Статус ответа - код 404
+		c.Status(fiber.StatusNotFound)
+		// Возврат json хэш-таблицы с ошибкой
+		return c.JSON(fiber.Map{
+			"message": "пользователь не найден",
+		})
+	}
+
+	if strconv.Itoa(user.VarifiedCode) != data["code"] {
+		// Статус ответа - код 404
+		c.Status(fiber.StatusNotFound)
+		// Возврат json хэш-таблицы с ошибкой
+		return c.JSON(fiber.Map{
+			"message": "код не совпадает",
+		})
+	}
+
+	user.IsEmailVerified = true
+
+	database.DB.Save(&user)
+
+	return c.JSON(fiber.Map{
+		"message": "почта подтверждена",
+	})
 }
 
 // Реализация функции регистрации
@@ -41,44 +65,62 @@ func Register(c *fiber.Ctx) error {
 		return err
 	}
 
-	validationCode := rand.Intn(900000) + 100000 // Генерация случайного числа от 100000 до 999999
+	/* Проверка, была ли почта проеверена */
+	var user models.User // Возврать модели User
+	// Поиск первый результат почты в базе данных
+	database.DB.Where("email = ?", data["email"]).First(&user)
 
-	// Вызов метода для отправки письма на почту пользователя
-	if err := scripts.SendMail(data["email"], validationCode); err != nil {
-		// Если почта некоректная, то происходит выход из функции
-		return err
+	// Если пользователь не был найден
+	if user.Id == 0 {
+		validationCode := rand.Intn(900000) + 100000 // Генерация случайного числа от 100000 до 999999
+
+		// Вызов метода для отправки письма на почту пользователя
+		if err := scripts.SendMail(data["email"], validationCode); err != nil {
+			// Если почта некоректная, то происходит выход из функции
+			return err
+		}
+
+		// Хэширование пароля
+		password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
+
+		// Создание объекта модели User
+		user := models.User{
+			Name:            data["name"],   // Применение имени
+			Email:           data["email"],  // Применение почты
+			Password:        password,       // Применение хэшированного пароля
+			VarifiedCode:    validationCode, // Применение кода валидации
+			IsEmailVerified: false,
+		}
+
+		// Сохраниение объекта в базу данных
+		database.DB.Create(&user)
+
+		// Возвращение файла json объекта user
+		return c.JSON(user)
+	} else if user.IsEmailVerified == true {
+		user.IsEmailVerified = true
+		user.VarifiedCode = 0
+
+		database.DB.Save(&user)
+
+		return c.JSON(user)
+	} else {
+		validationCode := rand.Intn(900000) + 100000 // Генерация случайного числа от 100000 до 999999
+
+		// Вызов метода для отправки письма на почту пользователя
+		if err := scripts.SendMail(data["email"], validationCode); err != nil {
+			// Если почта некоректная, то происходит выход из функции
+			return err
+		}
+
+		user.VarifiedCode = validationCode
+
+		database.DB.Save(&user)
+
+		return c.JSON(fiber.Map{
+			"message": "вы не подтвердили почту",
+		})
 	}
-
-	//if err := &codeJson; err != nil {
-	//	fmt.Printf("Ошибка")
-	//	return nil
-	//}
-
-	// Сохранение сгенерированного кода в переменной codeJson
-	//codeJson := strconv.Itoa(validationCode)
-	//
-	//// Проверка вводимого пользователем кода
-	//userCode := data["code"]
-	//if userCode != codeJson {
-	//	// Коды не совпадают, выполняйте соответствующие действия
-	//	return fmt.Errorf("Неверный код")
-	//}
-
-	// Хэширование пароля
-	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
-
-	// Создание объекта модели User
-	user := models.User{
-		Name:     data["name"],  // Применение имени
-		Email:    data["email"], // Применение почты
-		Password: password,      // Применение хэшированного пароля
-	}
-
-	// Сохраниение объекта в базу данных
-	database.DB.Create(&user)
-
-	// Возвращение файла json объекта user
-	return c.JSON(user)
 }
 
 // Реализация функции входа
