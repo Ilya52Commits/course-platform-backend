@@ -9,8 +9,6 @@ import (
 func SetUp(app *fiber.App) {
 	// Вызов запроса Post для регистрации
 	app.Post("/api/register", controllers.Register)
-	// Вызов запроса Get для регистрации
-	app.Get("/api/register", controllers.Register)
 
 	// Вызов запроса Post для подтверждения почты
 	app.Post("/api/mail-confirm", controllers.MailConfirm)

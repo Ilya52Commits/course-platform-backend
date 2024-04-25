@@ -25,33 +25,57 @@ func MailConfirm(c *fiber.Ctx) error {
 
 	var user models.User // Возврать модели User
 
-	database.DB.Where("varified_code = ?", data["code"]).First(&user)
+	// Поиск пользователя по почте
+	database.DB.Where("is_email_verified = ?", false).First(&user)
+
+	// Если флаг повторной отправки письма не пустой
+	if data["repeat"] != "" {
+		validationCode := rand.Intn(900000) + 100000 // Генерация случайного числа от 100000 до 999999
+
+		// Вызов метода для отправки письма на почту пользователя
+		if err := scripts.SendMail(user.Email, validationCode); err != nil {
+			// Если почта некоректная, то происходит выход из функции
+			return c.JSON(fiber.Map{
+				"message": "Почта не коректная",
+			})
+		}
+
+		user.VarifiedCode = validationCode // Присваивание нового кода
+
+		// Сохранение изменений
+		database.DB.Save(&user)
+
+		// Отправка сообщения о новом письме
+		return c.JSON(fiber.Map{
+			"message": "Был отправлен повторный код",
+		})
+	}
 
 	// Если пользователь не был найден
-	if user.Id == 0 {
-		// Статус ответа - код 404
-		c.Status(fiber.StatusNotFound)
-		// Возврат json хэш-таблицы с ошибкой
-		return c.JSON(fiber.Map{
-			"message": "пользователь не найден",
-		})
-	}
-
 	if strconv.Itoa(user.VarifiedCode) != data["code"] {
+
+		user.VarifiedCode = 0 // Обнуление кода в бд
+
+		// Сохранение изменений
+		database.DB.Save(&user)
+
 		// Статус ответа - код 404
 		c.Status(fiber.StatusNotFound)
 		// Возврат json хэш-таблицы с ошибкой
 		return c.JSON(fiber.Map{
-			"message": "код не совпадает",
+			"message": "Код не совпадает",
 		})
 	}
 
-	user.IsEmailVerified = true
+	user.VarifiedCode = 0       // Обнуление кода
+	user.IsEmailVerified = true // Изменение статуса почты на подтверждённый
 
+	// Созранение изменений на почту
 	database.DB.Save(&user)
 
+	// Отправка сообщения об успешном подтверждении почты
 	return c.JSON(fiber.Map{
-		"message": "почта подтверждена",
+		"message": "Почта подтверждена",
 	})
 }
 
@@ -77,7 +101,9 @@ func Register(c *fiber.Ctx) error {
 		// Вызов метода для отправки письма на почту пользователя
 		if err := scripts.SendMail(data["email"], validationCode); err != nil {
 			// Если почта некоректная, то происходит выход из функции
-			return err
+			return c.JSON(fiber.Map{
+				"message": "Почта не коректная",
+			})
 		}
 
 		// Хэширование пароля
@@ -88,39 +114,39 @@ func Register(c *fiber.Ctx) error {
 			Name:            data["name"],   // Применение имени
 			Email:           data["email"],  // Применение почты
 			Password:        password,       // Применение хэшированного пароля
-			VarifiedCode:    validationCode, // Применение кода валидации
+			VarifiedCode:    validationCode, // Применение кода валидацииusers
 			IsEmailVerified: false,
 		}
 
 		// Сохраниение объекта в базу данных
 		database.DB.Create(&user)
 
+		// Сохранение изменений
+		database.DB.Save(&user)
+
 		// Возвращение файла json объекта user
 		return c.JSON(user)
-	} else if user.IsEmailVerified == true {
-		user.IsEmailVerified = true
-		user.VarifiedCode = 0
+	}
 
-		database.DB.Save(&user)
+	validationCode := rand.Intn(900000) + 100000 // Генерация случайного числа от 100000 до 999999
 
-		return c.JSON(user)
-	} else {
-		validationCode := rand.Intn(900000) + 100000 // Генерация случайного числа от 100000 до 999999
-
-		// Вызов метода для отправки письма на почту пользователя
-		if err := scripts.SendMail(data["email"], validationCode); err != nil {
-			// Если почта некоректная, то происходит выход из функции
-			return err
-		}
-
-		user.VarifiedCode = validationCode
-
-		database.DB.Save(&user)
-
+	// Вызов метода для отправки письма на почту пользователя
+	if err := scripts.SendMail(data["email"], validationCode); err != nil {
+		// Если почта некоректная, то происходит выход из функции
 		return c.JSON(fiber.Map{
-			"message": "вы не подтвердили почту",
+			"message": "Почта не коректная",
 		})
 	}
+
+	user.VarifiedCode = validationCode // Присваивание нового кода
+
+	// Обновление бд
+	database.DB.Save(&user)
+
+	// Отправка сообщения об отсутвии подтверждения
+	return c.JSON(fiber.Map{
+		"message": "Вы не подтвердили почту",
+	})
 }
 
 // Реализация функции входа
@@ -144,7 +170,16 @@ func Login(c *fiber.Ctx) error {
 		c.Status(fiber.StatusNotFound)
 		// Возврат json хэш-таблицы с ошибкой
 		return c.JSON(fiber.Map{
-			"сообщение": "пользователь не найден",
+			"message": "Пользователь не найден",
+		})
+	}
+
+	if user.IsEmailVerified == false {
+		// Статус ответа - код 404
+		c.Status(fiber.StatusNotFound)
+		// Возврат json хэш-таблицы с ошибкой
+		return c.JSON(fiber.Map{
+			"message": "Вы не подтвердили почту",
 		})
 	}
 
@@ -154,7 +189,7 @@ func Login(c *fiber.Ctx) error {
 		c.Status(fiber.StatusBadRequest)
 		// Возврат json хэш-таблицы с ошибкой
 		return c.JSON(fiber.Map{
-			"сообщение": "неправильный пароль",
+			"message": "Неправильный пароль",
 		})
 	}
 
@@ -172,7 +207,7 @@ func Login(c *fiber.Ctx) error {
 		c.Status(fiber.StatusInternalServerError)
 		// Возврат json хэш-таблицы с ошибкой
 		return c.JSON(fiber.Map{
-			"сообщение": "не удалось войти в систему",
+			"message": "Не удалось войти в систему",
 		})
 	}
 
@@ -189,7 +224,7 @@ func Login(c *fiber.Ctx) error {
 
 	// Возврать сообщение об успешном входе
 	return c.JSON(fiber.Map{
-		"сообщение": "успешно",
+		"message": "Успешно",
 	})
 }
 
@@ -209,7 +244,7 @@ func User(c *fiber.Ctx) error {
 		c.Status(fiber.StatusUnauthorized)
 		// Возврат json хэш-таблицы с ошибкой
 		return c.JSON(fiber.Map{
-			"сообщение": "неаутентифицированный",
+			"message": "неаутентифицированный",
 		})
 	}
 
@@ -239,6 +274,6 @@ func Logout(c *fiber.Ctx) error {
 
 	// Возврат сообщения об успешном выходе
 	return c.JSON(fiber.Map{
-		"сообщение": "успешно",
+		"message": "успешно",
 	})
 }
