@@ -14,6 +14,7 @@ import (
 
 const SecretKey = "secret" // Секретный ключ для токена пользователя
 
+/* Реализация функции подтверждения почты */
 func MailConfirm(c *fiber.Ctx) error {
 	var data map[string]string // Создание хэш-таблицы для данных
 
@@ -79,7 +80,7 @@ func MailConfirm(c *fiber.Ctx) error {
 	})
 }
 
-// Реализация функции регистрации
+/* Реализация функции регистрации */
 func Register(c *fiber.Ctx) error {
 	var data map[string]string // Создание хэш-таблицы для данных
 
@@ -149,7 +150,7 @@ func Register(c *fiber.Ctx) error {
 	})
 }
 
-// Реализация функции входа
+/* Реализация функции входа */
 func Login(c *fiber.Ctx) error {
 	var data map[string]string // Создание хэш-таблицы для данных
 
@@ -228,7 +229,7 @@ func Login(c *fiber.Ctx) error {
 	})
 }
 
-// Создание функции получения пользователя
+/* Создание функции получения пользователя */
 func User(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt") // Извлечение куки
 
@@ -259,7 +260,7 @@ func User(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-// Создание функции для выхода из системы
+/* Создание функции для выхода из системы */
 func Logout(c *fiber.Ctx) error {
 	// Обнуление куки-файла
 	cookie := fiber.Cookie{
