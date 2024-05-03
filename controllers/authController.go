@@ -20,11 +20,11 @@ func MailConfirm(c *fiber.Ctx) error {
 
 	// Проверка тела запроса на ошибку
 	if err := c.BodyParser(&data); err != nil {
-		// Если ошибка не пуста то происходит выход из функции
+		// Если ошибка не пуста, то происходит выход из функции
 		return err
 	}
 
-	var user models.User // Возврать модели User
+	var user models.User // Возврат модели User
 
 	// Поиск пользователя по почте
 	database.DB.Where("is_email_verified = ?", false).First(&user)
@@ -35,9 +35,9 @@ func MailConfirm(c *fiber.Ctx) error {
 
 		// Вызов метода для отправки письма на почту пользователя
 		if err := scripts.SendMail(user.Email, validationCode); err != nil {
-			// Если почта некоректная, то происходит выход из функции
+			// Если почта некорректная, то происходит выход из функции
 			return c.JSON(fiber.Map{
-				"message": "Почта не коректная",
+				"message": "Почта не корректная",
 			})
 		}
 
@@ -71,7 +71,7 @@ func MailConfirm(c *fiber.Ctx) error {
 	user.VerifiedCode = 0       // Обнуление кода
 	user.IsEmailVerified = true // Изменение статуса почты на подтверждённый
 
-	// Созранение изменений на почту
+	// Сохранение изменений на почту
 	database.DB.Save(&user)
 
 	// Отправка сообщения об успешном подтверждении почты
@@ -90,8 +90,8 @@ func Register(c *fiber.Ctx) error {
 		return err
 	}
 
-	/* Проверка, была ли почта проеверена */
-	var user models.User // Возврать модели User
+	/* Проверка, была ли почта проверена */
+	var user models.User // Возврат модели User
 	// Поиск первый результат почты в базе данных
 	database.DB.Where("email = ?", data["email"]).First(&user)
 
@@ -101,13 +101,13 @@ func Register(c *fiber.Ctx) error {
 
 		// Вызов метода для отправки письма на почту пользователя
 		if err := scripts.SendMail(data["email"], validationCode); err != nil {
-			// Если почта некоректная, то происходит выход из функции
+			// Если почта некорректная, то происходит выход из функции
 			return c.JSON(fiber.Map{
-				"message": "Почта не коректная",
+				"message": "Почта не корректная",
 			})
 		}
 
-		// Хэширование пароля
+		// Хеширование пароля
 		password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
 
 		// Создание объекта модели User
@@ -116,10 +116,10 @@ func Register(c *fiber.Ctx) error {
 			Email:           data["email"],  // Применение почты
 			Password:        password,       // Применение хэшированного пароля
 			VerifiedCode:    validationCode, // Применение кода валидации
-			IsEmailVerified: false,
+			IsEmailVerified: false,          // Состояние проверки почты
 		}
 
-		// Сохраниение объекта в базу данных
+		// Сохранение объекта в базу данных
 		database.DB.Create(&user)
 
 		// Сохранение изменений
@@ -133,9 +133,9 @@ func Register(c *fiber.Ctx) error {
 
 	// Вызов метода для отправки письма на почту пользователя
 	if err := scripts.SendMail(data["email"], validationCode); err != nil {
-		// Если почта некоректная, то происходит выход из функции
+		// Если почта некорректная, то происходит выход из функции
 		return c.JSON(fiber.Map{
-			"message": "Почта не коректная",
+			"message": "Почта не корректная",
 		})
 	}
 
@@ -144,7 +144,7 @@ func Register(c *fiber.Ctx) error {
 	// Обновление бд
 	database.DB.Save(&user)
 
-	// Отправка сообщения об отсутвии подтверждения
+	// Отправка сообщения об отсутствии подтверждения
 	return c.JSON(fiber.Map{
 		"message": "Вы не подтвердили почту",
 	})
@@ -156,11 +156,11 @@ func Login(c *fiber.Ctx) error {
 
 	// Проверка тела запроса на ошибку
 	if err := c.BodyParser(&data); err != nil {
-		// Если ошибка не пуста то происходит выход из функции
+		// Если ошибка не пуста, то происходит выход из функции
 		return err
 	}
 
-	var user models.User // Возврать модели User
+	var user models.User // Возврат модели User
 
 	// Поиск первый результат почты в базе данных
 	database.DB.Where("email = ?", data["email"]).First(&user)
@@ -184,7 +184,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// Сравнивает хэш пароля user в бд с введёным от пользователя
+	// Сравнивает хэш пароля user в бд с введённым от пользователя
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"])); err != nil {
 		// Статус ответа - код 404
 		c.Status(fiber.StatusBadRequest)
@@ -196,7 +196,7 @@ func Login(c *fiber.Ctx) error {
 
 	// Создание объекта токена
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    strconv.Itoa(user.Id),                 // Страка (эмитет) id преобразованный в строку
+		Issuer:    strconv.Itoa(user.Id),                 // Строка (эмитет) id преобразованный в строку
 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Время истечения токена (1 день)
 	})
 
@@ -223,7 +223,7 @@ func Login(c *fiber.Ctx) error {
 	// Присваивание файла-куки
 	c.Cookie(&cookie)
 
-	// Возврать сообщение об успешном входе
+	// Возврат сообщение об успешном входе
 	return c.JSON(fiber.Map{
 		"message": "Успешно",
 	})
@@ -239,19 +239,20 @@ func User(c *fiber.Ctx) error {
 		return []byte(SecretKey), nil
 	})
 
-	// Если при разбора токена вышла ошибка
+	// Если при разборе токена вышла ошибка
 	if err != nil {
 		// Статус ответа - код 404
 		c.Status(fiber.StatusUnauthorized)
 		// Возврат json хэш-таблицы с ошибкой
+		//goland:noinspection LanguageDetectionInspection
 		return c.JSON(fiber.Map{
-			"message": "неаутентифицированный",
+			"message": "не аутентифицированный",
 		})
 	}
 
 	claims := token.Claims.(*jwt.StandardClaims) // Извлечение утверждений из токена
 
-	var user models.User // Возврать модели User
+	var user models.User // Возврат модели User
 
 	// Поиск первого пользователя по id
 	database.DB.Where("id = ?", claims.Issuer).First(&user)

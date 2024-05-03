@@ -18,7 +18,7 @@ func SendMail(mailAddressTo string, code int) error {
 		"\r\n" +
 		"Введите данный код: " + strconv.Itoa(code) + "\r\n")
 
-	// Отправка сообщения и присвоение ошибки, если таковая возникнит
+	// Отправка сообщения и присвоение ошибки, если таковая возникнет
 	if err := smtp.SendMail("smtp.gmail.com:587", auth, "krasnenkov.ilia@gmail.com", to, msg); err != nil {
 		return err
 	}

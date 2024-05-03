@@ -8,10 +8,10 @@ import (
 )
 
 func main() {
-	// Вызов функции Connect в паете database
+	// Вызов функции Connect в пакете database
 	database.Connect()
 
-	app := fiber.New() // Создание экземлпяра fiber для работы с HTTP запросами
+	app := fiber.New() // Создание экземпляра fiber для работы с HTTP запросами
 
 	// Добавляется middleware для обработки CORS-заголовков с помощью функции
 	app.Use(cors.New(cors.Config{
@@ -24,7 +24,7 @@ func main() {
 	// Настраивает маршруты приложения
 	routers.SetUp(app)
 
-	// Начтраивается порт 8000
+	// Настраивается порт 8000
 	err := app.Listen(":8000")
 	if err != nil {
 		return

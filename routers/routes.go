@@ -21,4 +21,7 @@ func SetUp(app *fiber.App) {
 
 	// Вызов запроса Post для выхода из системы
 	app.Post("/api/logout", controllers.Logout)
+
+	// Вызов запроса Post для создания курса
+	app.Post("/api/create-course", controllers.CreateCourse)
 }
