@@ -1,6 +1,6 @@
 package models
 
-/* Модель таблицы модуля */
+// Module /* Модель таблицы модуля */
 type Module struct {
 	Id          int    `json:"id"`        // Идентификатор
 	Name        string `json:"name"`      // Имя

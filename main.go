@@ -25,5 +25,8 @@ func main() {
 	routers.SetUp(app)
 
 	// Начтраивается порт 8000
-	app.Listen(":8000")
+	err := app.Listen(":8000")
+	if err != nil {
+		return
+	}
 }

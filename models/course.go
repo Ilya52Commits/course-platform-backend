@@ -1,6 +1,6 @@
 package models
 
-/* Модель таблицы курса */
+// Course /* Модель таблицы курса */
 type Course struct {
 	Id          int    `json:"id"`          // Идентификатов
 	Name        string `json:"name"`        // Название

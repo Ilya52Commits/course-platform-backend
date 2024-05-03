@@ -14,7 +14,7 @@ import (
 
 const SecretKey = "secret" // Секретный ключ для токена пользователя
 
-/* Реализация функции подтверждения почты */
+// MailConfirm /* Реализация функции подтверждения почты */
 func MailConfirm(c *fiber.Ctx) error {
 	var data map[string]string // Создание хэш-таблицы для данных
 
@@ -41,7 +41,7 @@ func MailConfirm(c *fiber.Ctx) error {
 			})
 		}
 
-		user.VarifiedCode = validationCode // Присваивание нового кода
+		user.VerifiedCode = validationCode // Присваивание нового кода
 
 		// Сохранение изменений
 		database.DB.Save(&user)
@@ -53,9 +53,9 @@ func MailConfirm(c *fiber.Ctx) error {
 	}
 
 	// Если пользователь не был найден
-	if strconv.Itoa(user.VarifiedCode) != data["code"] {
+	if strconv.Itoa(user.VerifiedCode) != data["code"] {
 
-		user.VarifiedCode = 0 // Обнуление кода в бд
+		user.VerifiedCode = 0 // Обнуление кода в бд
 
 		// Сохранение изменений
 		database.DB.Save(&user)
@@ -68,7 +68,7 @@ func MailConfirm(c *fiber.Ctx) error {
 		})
 	}
 
-	user.VarifiedCode = 0       // Обнуление кода
+	user.VerifiedCode = 0       // Обнуление кода
 	user.IsEmailVerified = true // Изменение статуса почты на подтверждённый
 
 	// Созранение изменений на почту
@@ -80,7 +80,7 @@ func MailConfirm(c *fiber.Ctx) error {
 	})
 }
 
-/* Реализация функции регистрации */
+// Register /* Реализация функции регистрации */
 func Register(c *fiber.Ctx) error {
 	var data map[string]string // Создание хэш-таблицы для данных
 
@@ -115,7 +115,7 @@ func Register(c *fiber.Ctx) error {
 			Name:            data["name"],   // Применение имени
 			Email:           data["email"],  // Применение почты
 			Password:        password,       // Применение хэшированного пароля
-			VarifiedCode:    validationCode, // Применение кода валидацииusers
+			VerifiedCode:    validationCode, // Применение кода валидации
 			IsEmailVerified: false,
 		}
 
@@ -139,7 +139,7 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
-	user.VarifiedCode = validationCode // Присваивание нового кода
+	user.VerifiedCode = validationCode // Присваивание нового кода
 
 	// Обновление бд
 	database.DB.Save(&user)
@@ -150,7 +150,7 @@ func Register(c *fiber.Ctx) error {
 	})
 }
 
-/* Реализация функции входа */
+// Login /* Реализация функции входа */
 func Login(c *fiber.Ctx) error {
 	var data map[string]string // Создание хэш-таблицы для данных
 
@@ -229,7 +229,7 @@ func Login(c *fiber.Ctx) error {
 	})
 }
 
-/* Создание функции получения пользователя */
+// User /* Создание функции получения пользователя */
 func User(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt") // Извлечение куки
 
@@ -260,7 +260,7 @@ func User(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-/* Создание функции для выхода из системы */
+// Logout /* Создание функции для выхода из системы */
 func Logout(c *fiber.Ctx) error {
 	// Обнуление куки-файла
 	cookie := fiber.Cookie{

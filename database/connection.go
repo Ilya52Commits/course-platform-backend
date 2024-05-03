@@ -6,12 +6,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// Создание экземпляра gorm
+// DB Создание экземпляра gorm
 var DB *gorm.DB
 
-/* Создание фукнции подключения */
+// Connect /* Создание фукнции подключения */
 func Connect() {
-	// Определение dsn (Data Sourse Name)* - содержит информацию о типе источника данных,
+	// Определение dsn (Data Source Name)* - содержит информацию о типе источника данных,
 	// его расположении и других параметрах, необходимых для установки соединения
 	dsn := "host=localhost user=postgres password=52 dbname=course_db port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
@@ -26,6 +26,12 @@ func Connect() {
 
 	DB = connection // Присваивание результатов подключения базы данных в экземпляр DB
 
-	// Миграция модели User
-	connection.AutoMigrate(&models.User{})
+	// Миграция модели
+	err = connection.AutoMigrate(&models.User{},
+		&models.Course{},
+		&models.Module{},
+		&models.Lesson{})
+	if err != nil {
+		return
+	}
 }

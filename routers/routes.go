@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-/* Создание метода для роутинга */
+// SetUp /* Создание метода для роутинга */
 func SetUp(app *fiber.App) {
 	// Вызов запроса Post для регистрации
 	app.Post("/api/register", controllers.Register)

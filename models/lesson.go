@@ -1,6 +1,6 @@
 package models
 
-/* Модель таблицы урока */
+// Lesson /* Модель таблицы урока */
 type Lesson struct {
 	Id          int    `json:"id"`                                // Идентификатор
 	Name        string `json:"name"`                              // Имя

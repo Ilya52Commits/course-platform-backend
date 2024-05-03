@@ -5,15 +5,15 @@ import (
 	"strconv"
 )
 
-/* Функция для отправки письма на почту */
-func SendMail(mailAddresTo string, code int) error {
+// SendMail /* Функция для отправки письма на почту */
+func SendMail(mailAddressTo string, code int) error {
 	// Настройка почты отправителя
 	auth := smtp.PlainAuth("", "krasnenkov.ilia@gmail.com", "ymvv xxjf sjer picd", "smtp.gmail.com")
 
-	to := []string{mailAddresTo} // Присвоение почты получателя
+	to := []string{mailAddressTo} // Присвоение почты получателя
 
 	// Составление письма
-	msg := []byte("To: " + mailAddresTo + "\r\n" +
+	msg := []byte("To: " + mailAddressTo + "\r\n" +
 		"Subject: Подтверждение почты\r\n" +
 		"\r\n" +
 		"Введите данный код: " + strconv.Itoa(code) + "\r\n")
