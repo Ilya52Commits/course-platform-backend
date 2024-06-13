@@ -1,15 +1,16 @@
 package controllers
 
 import (
+	"math/rand"
+	"strconv"
+	"time"
+
 	"github.com/Ilya52Commits/course-platform/database"
 	"github.com/Ilya52Commits/course-platform/models"
 	"github.com/Ilya52Commits/course-platform/scripts"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
-	"math/rand"
-	"strconv"
-	"time"
 )
 
 const SecretKey = "secret" // Секретный ключ для токена пользователя
@@ -175,7 +176,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	if user.IsEmailVerified == false {
+	if !user.IsEmailVerified {
 		// Статус ответа - код 404
 		c.Status(fiber.StatusNotFound)
 		// Возврат json хэш-таблицы с ошибкой

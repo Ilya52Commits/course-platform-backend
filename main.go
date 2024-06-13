@@ -15,6 +15,7 @@ func main() {
 
 	// Добавляется middleware для обработки CORS-заголовков с помощью функции
 	app.Use(cors.New(cors.Config{
+		AllowHeaders: "Origin, Content-Type, Accept",
 		// Разрешаются запросы с http://localhost:5173
 		AllowOrigins: "http://localhost:5173",
 		// Разрешены кросс-доменные запросы с использованием куки

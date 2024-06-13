@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+
 func CreateCourse(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt") // Извлечение куки
 
@@ -63,3 +64,6 @@ func CreateCourse(c *fiber.Ctx) error {
 		"message": "Курс успешно создан",
 	})
 }
+
+// Токен уже распознан, попробовать передавать почту в app.jsx
+// Почитать, не нарушает ли это правило токенизации
