@@ -24,4 +24,7 @@ func SetUp(app *fiber.App) {
 
 	// Вызов запроса Post для создания курса
 	app.Post("/api/create-course", controllers.CreateCourse)
+
+	// Вызов запроса Post для создание модуля
+	app.Post("/api/create-module", controllers.CreateModule)
 }

@@ -6,9 +6,6 @@ type User struct {
 	Name            string `json:"name"`                // Имя
 	Email           string `json:"email" gorm:"unique"` // Почта
 	Password        []byte `json:"-"`                   // Пароль
-	VerifiedCode    int    `json:"verified_code"`
+	VerifiedCode    int    `json:"verified_code"`		// Код подтверждения почты
 	IsEmailVerified bool   `json:"is_email_verified" gorm:"default:false;not null"` // Флаг подтверждения почты
-	IsAdmin         bool   `json:"is_admin" gorm:"default:false;not null"`          // Флаг подтверждения на создателя курса
-	//CreatedCourseId []int  `json:"created_course_id"`                               // Массив идентификаторов созданных курсов
-	//TrackedCourseId []int  `json:"tracked_course_id"`                               // Массив идентификаторов созданных курсов
 }
