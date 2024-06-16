@@ -152,3 +152,10 @@ func GetModules(c *fiber.Ctx) error {
 
 	return c.JSON(modules)
 }
+
+func GetCourses(c *fiber.Ctx) error {
+	var courses []models.Course
+	database.DB.Find(&courses)
+
+	return c.JSON(courses)
+}
