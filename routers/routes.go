@@ -33,4 +33,13 @@ func SetUp(app *fiber.App) {
 
 	// Вызов запроса Get для получения курсов
 	app.Get("/api/get-courses", controllers.GetCourses)
+
+	// Вызов запроса Post для добавления урока
+	app.Post("/api/create-lesson", controllers.CreateLesson)
+
+	// Вызов запроса Get для получения курсов
+	app.Post("/api/get-lessons", controllers.GetLessons)
+
+	// Вызов запроса Get для получения курсов
+	app.Post("/api/get-lesson", controllers.GetLesson)
 }

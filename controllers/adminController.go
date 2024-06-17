@@ -159,3 +159,81 @@ func GetCourses(c *fiber.Ctx) error {
 
 	return c.JSON(courses)
 }
+
+func CreateLesson(c *fiber.Ctx) error {
+	var data map[string]string
+
+	if err := c.BodyParser(&data); err != nil {
+		return err
+	}
+
+	var module models.Module
+	database.DB.Where("name = ?", data["nameModule"]).Find(&module)
+
+	// Поиск первого пользователя по id
+	if module.Id == 0 {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "модуль не найден",
+		})
+	}
+
+	lesson := models.Lesson{
+		Name:     data["nameLesson"],
+		Video:    data["urlVideoLesson"],
+		Task:     data["taskLesson"],
+		IdModule: module.Id,
+	}
+
+	database.DB.Create(&lesson)
+
+	database.DB.Save(&lesson)
+
+	return c.JSON(lesson)
+}
+
+func GetLessons(c *fiber.Ctx) error {
+	var data map[string]string
+
+	if err := c.BodyParser(&data); err != nil {
+		return err
+	}
+
+	var module models.Module
+	database.DB.Where("name = ?", data["nameModule"]).First(&module)
+
+	if module.Id == 0 {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "модуль не найден",
+		})
+	}
+
+	var lessons []models.Lesson
+	database.DB.Where("id_module = ?", module.Id).Find(&lessons)
+
+	return c.JSON(lessons)
+}
+
+func GetLesson(c *fiber.Ctx) error {
+	var data map[string]string
+
+	if err := c.BodyParser(&data); err != nil {
+		return err
+	}
+
+	var module models.Module
+	database.DB.Where("name = ?", data["nameModule"]).First(&module)
+
+	if module.Id == 0 {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "модуль не найден",
+		})
+	}
+
+	var lesson models.Lesson
+	database.DB.Where("id_module = ?", module.Id).First(&lesson)
+
+	return c.JSON(lesson)
+}
