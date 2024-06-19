@@ -59,9 +59,7 @@ func CreateCourse(c *fiber.Ctx) error {
 
 	database.DB.Save(&course)
 
-	return c.JSON(fiber.Map{
-		"message": "Курс успешно создан",
-	})
+	return c.JSON(course)
 }
 
 func CreateModule(c *fiber.Ctx) error {
@@ -108,7 +106,7 @@ func CreateModule(c *fiber.Ctx) error {
 
 	var course models.Course
 
-	database.DB.Where("name = ?", data["nameCourse"]).First(&course)
+	database.DB.Where("id = ?", data["idCourse"]).First(&course)
 
 	// Поиск первого пользователя по id
 	if course.Id == 0 {
@@ -138,7 +136,7 @@ func GetModules(c *fiber.Ctx) error {
 	}
 
 	var course models.Course
-	database.DB.Where("name = ?", data["nameCourse"]).First(&course)
+	database.DB.Where("id = ?", data["idCourse"]).First(&course)
 
 	if course.Id == 0 {
 		c.Status(fiber.StatusUnauthorized)
@@ -168,7 +166,7 @@ func CreateLesson(c *fiber.Ctx) error {
 	}
 
 	var module models.Module
-	database.DB.Where("name = ?", data["nameModule"]).Find(&module)
+	database.DB.Where("id = ?", data["idModule"]).First(&module)
 
 	// Поиск первого пользователя по id
 	if module.Id == 0 {
@@ -200,7 +198,7 @@ func GetLessons(c *fiber.Ctx) error {
 	}
 
 	var module models.Module
-	database.DB.Where("name = ?", data["nameModule"]).First(&module)
+	database.DB.Where("id = ?", data["idModule"]).First(&module)
 
 	if module.Id == 0 {
 		c.Status(fiber.StatusUnauthorized)
@@ -222,18 +220,8 @@ func GetLesson(c *fiber.Ctx) error {
 		return err
 	}
 
-	var module models.Module
-	database.DB.Where("name = ?", data["nameModule"]).First(&module)
-
-	if module.Id == 0 {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "модуль не найден",
-		})
-	}
-
 	var lesson models.Lesson
-	database.DB.Where("id_module = ?", module.Id).First(&lesson)
+	database.DB.Where("id = ?", data["idLesson"]).First(&lesson)
 
 	return c.JSON(lesson)
 }
